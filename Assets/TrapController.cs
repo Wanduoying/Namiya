@@ -17,7 +17,7 @@ public class TrapController : MonoBehaviour {
     //プレイヤーが上にきたら消去
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player")
+        if (other.tag == "PlayerTag")
         {
             Destroy(this.gameObject);
             //Debug.Log("Trap");

@@ -19,19 +19,41 @@ public class DungeonGenerator : MonoBehaviour
     private int randomMin = 0;
     private int randomMax = 100;
 
+    //配列
     //マップ
-    int[,] map;
-    public int mapWidth = 100;
-    public int mapHeight = 100;
-    public int maxRoom = 10;
+    //配列規則　要素0＝壁　1＝通路　2部屋
+    public int[,] map;
+    public int mapWidth;
+    public int mapHeight;
+    public int maxRoom;
+
+    //キャラ　//
+    //配列規則　要素0～1＝敵　2～99＝何もない　100＝プレイヤー
+    public int[,] mapChara;
+    public List<int>[] listEnemyPos = new List<int>[3]; //[0]＝ID　[1]＝X座標　[2]はZ座標とする
+    public int listEnemyPosNum = 0;
+    public int playerPosX;
+    public int playerPosZ;
 
 
-    void Start()
+    //リスト
+    public List<EnemyController> enemyCtrlList = new List<EnemyController>();
+
+    void Awake()
     {
+        listEnemyPos[0] = new List<int>();
+        listEnemyPos[1] = new List<int>();
+        listEnemyPos[2] = new List<int>();
+
         MapGenerator();
         CharacterGenerator();
         ItemGenerator();
         GroundObjectGenerator();
+    }
+
+    void Start()
+    {
+        
     }
 
     private void Update()
@@ -40,12 +62,30 @@ public class DungeonGenerator : MonoBehaviour
         {
             SceneManager.LoadScene("GameScene");
         }
-
+        if (Input.GetKeyDown(KeyCode.F11))
+        {
+            foreach (int num in listEnemyPos[0])
+            {
+                Debug.Log("敵ID＝" + num);
+            }
+            foreach (int num in listEnemyPos[1])
+            {
+                Debug.Log("X座標＝" + num);
+            }
+            foreach (int num in listEnemyPos[2])
+            {
+                Debug.Log("Z座標＝" + num);
+            }
+        }
     }
 
     //マップ作成
     void MapGenerator()
     {
+        mapHeight = 16;
+        mapWidth = 32;
+        maxRoom = 8;
+
         //２次元の配列にする
         MapGenerator mapGen = new MapGenerator();
         //0が壁、1が通路、2が部屋のint型二次元配列
@@ -77,7 +117,7 @@ public class DungeonGenerator : MonoBehaviour
     void CharacterGenerator()
     {
         //２次元の配列にする
-        int[,] mapChara = new int[mapWidth, mapHeight];
+        mapChara = new int[mapWidth, mapHeight];
 
         //for文を用ゐて各インデックスにランダム値を代入
         for (int i = 0; i < mapChara.GetLength(0); i++)
@@ -85,7 +125,7 @@ public class DungeonGenerator : MonoBehaviour
             for (int j = 0; j < mapChara.GetLength(1); j++)
             {
                 //mapの壁(map[i, j] == 0)には生成せず
-                mapChara[i, j] = (map[i, j] == 0) ? 1000: Random.Range(randomMin, randomMax);
+                mapChara[i, j] = (map[i, j] == 0) ? randomMax - 1: Random.Range(randomMin, randomMax);
             }
         }
 
@@ -94,39 +134,43 @@ public class DungeonGenerator : MonoBehaviour
         {
             for (int j = 0; j < mapChara.GetLength(1); j++)
             {
-                //インデックスの値が規定値以下の時、EnemyPrefabを生成
+                //インデックスの値が規定値以下の時、EnemyPrefabを生成 
                 if (mapChara[i, j] < 2)
                 {
+                    listEnemyPos[0].Add(listEnemyPosNum);
+                    listEnemyPos[1].Add(i);
+                    listEnemyPos[2].Add(j);
+                    listEnemyPosNum++;
+
                     GameObject enemGo = Instantiate(EnemyPrefab);
                     enemGo.transform.position = new Vector3(i, 0, j);
+
+                    //生成したEnemyPrefabにアタッチしてあるスクリプトを取得
+                    EnemyController ctrl = enemGo.GetComponent<EnemyController>();
+
+                    //ctrlをリストに追加＝enemyListにスクリプトEnemyControllerを追加
+                    enemyCtrlList.Add(ctrl);
                 }
             }
         }
 
         //プレイヤーを生成
-        //int debugNum = 0;
-        int playerPosX;
-        int playerPosZ;
-
         while (true)
         {
-            //debugNum++;
-
             //playerPosX、playerPosYにランダムな値を代入
             playerPosX = Random.Range(mapWidth - mapWidth, mapWidth);
             playerPosZ = Random.Range(mapHeight - mapHeight, mapHeight);
 
-            //Debug.Log(debugNum + "囘目" + "、playerPosX＝" + playerPosX + "、playerPosZ＝" + playerPosZ + "、map[,]の座標＝" + map[playerPosX, playerPosZ] + "、mapCharaの座標＝" + mapChara[playerPosX, playerPosZ]);
-
-
             //生成位置が壁中でなく、かつ敵の生成位置と重ならなければ終了
-            if (map[playerPosX, playerPosZ]==2 && 2 <= mapChara[playerPosX, playerPosZ]) break;
+            if (map[playerPosX, playerPosZ] == 2 && 2 <= mapChara[playerPosX, playerPosZ])
+                break;
         }
-        //whire文で求めた座標にPlayerPrefabを生成
+        //mapChara[playerPosX, playerPosZ]に100を代入
+        mapChara[playerPosX, playerPosZ] = 100;
+
+        //mapChara[playerPosX, playerPosZ]にPlayerPrefabを生成
         GameObject playerGo = Instantiate(PlayerPrefab);
         playerGo.transform.position = new Vector3(playerPosX, 0, playerPosZ);
-
-        //Debug.Log("whire終了、playerGoの座標＝"+playerGo.transform.position);
 
     }
 

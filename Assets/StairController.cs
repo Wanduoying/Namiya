@@ -8,7 +8,7 @@ public class StairController : MonoBehaviour {
     //プレイヤーが上にきたらシーン再ロード
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player")
+        if (other.tag == "PlayerTag")
         {
             SceneManager.LoadScene("GameScene");
             //Debug.Log("階段");

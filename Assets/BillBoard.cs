@@ -9,12 +9,16 @@ public class BillBoard : MonoBehaviour {
 
     void Start()
     {
-        this.mainCamera = GameObject.Find("Main Camera");
+        this.mainCamera = GameObject.Find("Camera");
     }
 
     void Update () {
+            this.transform.LookAt(mainCamera.transform);
+
+        /*
         Vector3 p = mainCamera.transform.position;
         p.y = transform.position.y;
         transform.LookAt(p);
-	}
+        */
+    }
 }
